@@ -10,6 +10,6 @@
   ],
   "setup": {
     "first_run": "/trend-radar",
-    "instructions": "install with `npx skills add codemathics/trend-radar -g`, then type /trend-radar in claude code. on the first run it guides you through setup (notion, niches, voice, test run); after that it runs the daily radar."
+    "instructions": "install with `npx skills add codemathics/trend-radar -g -a claude-code`, then type /trend-radar in claude code. on the first run it guides you through setup (notion, niches, voice, test run); after that it runs the daily radar."
   }
 }

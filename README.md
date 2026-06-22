@@ -11,7 +11,7 @@ built to be cloned and configured for any creator. all the personalization lives
 install with one command:
 
 ```bash
-npx skills add codemathics/trend-radar -g
+npx skills add codemathics/trend-radar -g -a claude-code
 ```
 
 then open claude code and type: `/trend-radar`
@@ -112,7 +112,7 @@ optional (improves results but not required):
 
 ## manual setup (advanced)
 
-if you prefer to set everything up yourself without the guided flow, here are the full steps. most users should use `npx skills add codemathics/trend-radar -g` (or `python3 setup.py` from a clone) then `/trend-radar` instead.
+if you prefer to set everything up yourself without the guided flow, here are the full steps. most users should use `npx skills add codemathics/trend-radar -g -a claude-code` (or `python3 setup.py` from a clone) then `/trend-radar` instead.
 
 ### 1. clone the repo
 
@@ -299,7 +299,7 @@ you can also pass keys as environment variables. the skill checks `os.environ` b
 the easiest path is the [skills](https://github.com/vercel-labs/skills) cli, which copies the skill folder into place for you:
 
 ```bash
-npx skills add codemathics/trend-radar -g
+npx skills add codemathics/trend-radar -g -a claude-code
 ```
 
 or from a clone, `python3 setup.py` does the same and also installs python deps.

@@ -4,7 +4,7 @@ trend-radar local installer (git-clone path).
 
 most people should just run:
 
-    npx skills add codemathics/trend-radar -g
+    npx skills add codemathics/trend-radar -g -a claude-code
 
 ...which installs the skill files for them. this script is the equivalent for
 people who cloned the repo and don't want to use the skills cli. it:
