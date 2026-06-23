@@ -65,15 +65,16 @@ The python scripts resolve both automatically, so for fetch/score steps you just
    - `DATA_DIR/memory/used_hooks.json`, last 14 days of hooks used (for rotation), if it exists
    - `DATA_DIR/cache/seen_trends.json`, 30-day dedup cache, if it exists
 
-2. **Run Tier 1 fetchers** by calling `python3 scripts/run_all.py`. Sources that work with zero setup (these are the defaults):
+2. **Run Tier 1 fetchers** by calling `python3 scripts/run_all.py`. Sources that work with zero setup (the default):
    - Hacker News (public API)
-   - Reddit (public JSON endpoints, hits all niche subreddits)
-   - TikTok Creative Center (public endpoints, trending hashtags + sounds)
 
    Optional sources, automatically used IF a key is present in `memory/secrets.json`, silently skipped otherwise (no failure):
    - YouTube Data API (needs `YT_API_KEY`)
    - Product Hunt (needs `PH_TOKEN`)
+   - Reddit (needs `REDDIT_CLIENT_ID` + `REDDIT_CLIENT_SECRET` — Reddit now blocks unauthenticated `.json` access, so it uses app-only OAuth; free script app at reddit.com/prefs/apps)
    - Google Trends (needs `pytrends` pip installed)
+
+   TikTok Creative Center's API is now permission-gated for unsigned requests, so the TikTok fetcher defers to the Tier-2 browser fallback below rather than failing. Reddit and TikTok are therefore no longer reliable zero-setup defaults; expect Tier 1 to be thin (HN, plus YouTube/PH/Reddit when keys are set) and lean on Tier 2 when fewer than 3 trends qualify.
 
 3. **Score every candidate** with `scripts/score_trends.py`:
    - niche_fit × 0.40 + velocity × 0.25 + cross_platform × 0.15 + recency × 0.10 + originality × 0.10

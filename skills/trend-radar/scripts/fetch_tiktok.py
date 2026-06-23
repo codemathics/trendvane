@@ -1,18 +1,17 @@
 """TikTok Creative Center fetcher.
 
-TikTok exposes a (mostly) public API for the Creative Center trending data at
-https://ads.tiktok.com/business/creativecenter/inspiration/popular/...
+TikTok's Creative Center trending endpoints used to be callable unsigned, but
+they are now permission-gated: the hashtag endpoint returns code 40101
+("no permission") and the sounds path 404s for unsigned requests. Matching
+TikTok's request signing is a moving target that breaks frequently, so this
+fetcher probes the API once and, when it's gated, returns [] and lets the
+skill's Tier-2 browser fallback (Claude in Chrome on Creative Center) handle
+TikTok trends. If TikTok ever opens the API back up, the probe passes and the
+normal path below resumes with no code change.
 
-The endpoints below are the same ones the website itself calls. They don't
-require auth but are subject to change — if TikTok updates the schema, this
-fetcher logs a warning and returns [] so the daily run continues.
-
-Pulls:
+When the API is available it pulls, scoped to the regions in my_niches.json:
 - Trending hashtags (top 50)
 - Trending sounds (top 50)
-- Trending videos (top 50)
-
-All scoped to US + GB + CA + AU (in line with my_niches.json region setting).
 """
 
 from __future__ import annotations
@@ -45,7 +44,9 @@ def _get(url: str, params: dict) -> dict | None:
         with urllib.request.urlopen(req, timeout=15) as r:
             return json.loads(r.read().decode("utf-8"))
     except Exception as e:
-        log.warning(f"TikTok API failed: {url} — {e}")
+        # Kept at debug: fetch() emits one clear line when the API is gated, so
+        # we don't want a warning per region/endpoint cluttering the run log.
+        log.debug(f"TikTok API call failed: {url} — {e}")
         return None
 
 
@@ -136,12 +137,38 @@ def _fetch_sounds(region: str) -> list[TrendCandidate]:
     return out
 
 
+def _api_available(region: str) -> bool:
+    """Probe the Creative Center API once.
+
+    TikTok now permission-gates these endpoints for unsigned requests (the
+    hashtag endpoint returns code 40101 "no permission" and the sounds path
+    404s). Replicating TikTok's request signing is a moving target that breaks
+    often, so rather than fail per-region we probe once and, when the API isn't
+    serving us, defer TikTok trends to the Tier-2 browser fallback (the skill
+    loads Creative Center in a real browser session when fewer than 3 trends
+    qualify). If TikTok ever un-gates the API, this probe passes and the normal
+    path resumes with no code change.
+    """
+    data = _get(
+        HASHTAG_URL,
+        {"page": 1, "limit": 1, "period": 7, "country_code": region, "sort_by": "popular"},
+    )
+    return bool(data) and data.get("code") == 0
+
+
 def fetch() -> list[TrendCandidate]:
     cfg = load_niches()
     region_cfg = cfg.get("region", {})
     primary = region_cfg.get("primary", "US")
     secondary = region_cfg.get("secondary", ["GB", "CA", "AU"])
     regions = [primary] + [r for r in secondary if r != primary] if primary else DEFAULT_REGIONS
+
+    if not _api_available(regions[0]):
+        log.info(
+            "TikTok Creative Center API is gated for unsigned requests; "
+            "deferring TikTok trends to the browser fallback (Tier 2)"
+        )
+        return []
 
     all_items: list[TrendCandidate] = []
     for region in regions:
