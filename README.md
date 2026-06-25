@@ -4,6 +4,8 @@ a claude code skill that runs every morning, fetches what's actually trending ac
 
 built to be cloned and configured for any creator. all the personalization lives in a handful of json and markdown files.
 
+_a note on the name: this project launched as **trendradar**, but the old name was already taken by so many other projects that it was rebranded to **trendvane**._
+
 ---
 
 ## quick start
