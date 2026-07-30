@@ -18,6 +18,7 @@ after it runs, open claude code and type /trendvane.
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -26,7 +27,26 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent
 SKILLS_SRC = REPO_ROOT / "skills"
 CLAUDE_SKILLS = Path.home() / ".claude" / "skills"
-DATA_DIR = Path.home() / ".claude" / "trendvane"
+
+
+def _resolve_data_dir() -> Path:
+    """Where user config/data lives, matching scripts/common.py exactly.
+
+    An env override (new name, then legacy) wins; otherwise a pre-rename install
+    that still has ~/.claude/trend-radar (and no ~/.claude/trendvane) keeps using
+    the legacy dir, so re-running this installer never orphans an existing config.
+    """
+    env_dir = os.environ.get("TRENDVANE_DATA") or os.environ.get("TREND_RADAR_DATA")
+    if env_dir:
+        return Path(env_dir).expanduser()
+    claude = Path.home() / ".claude"
+    new_data, legacy_data = claude / "trendvane", claude / "trend-radar"
+    if not new_data.exists() and legacy_data.exists():
+        return legacy_data
+    return new_data
+
+
+DATA_DIR = _resolve_data_dir()
 
 SEP = "=" * 54
 
