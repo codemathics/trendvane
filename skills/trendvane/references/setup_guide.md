@@ -16,8 +16,8 @@ be warm, plain, and specific. no jargon unless the user is clearly technical. wh
 
 - **CODE_DIR** = where this skill is installed (the folder its `SKILL.md` lives in). holds `scripts/`, `templates/`, `references/`, and the default config. confirm with `ls <CODE_DIR>/scripts/run_all.py`.
 - **DATA_DIR** = where the user's config and data live, so updates can't wipe them. resolve it the way the scripts do:
-  - if `$TRENDVANE_DATA` is set, that path
-  - else if CODE_DIR is under `~/.claude/skills/`, then `~/.claude/trendvane/`
+  - if `$TRENDVANE_DATA` (or the legacy `$TREND_RADAR_DATA`) is set, that path
+  - else if CODE_DIR is under `~/.claude/skills/`, then `~/.claude/trendvane/` - but a pre-rename install whose config still lives in `~/.claude/trend-radar/` (with no `~/.claude/trendvane/` yet) keeps using that legacy dir
   - else (running from a clone) DATA_DIR == CODE_DIR
 
   create it if missing, with subfolders `memory/`, `cache/`, `briefings/`.
@@ -145,7 +145,7 @@ date:             Used Date
     "id": "<parent page id>"
   },
   "databases": {
-    "trend_radar": {
+    "trendvane": {
       "title": "trendvane",
       "url": "<url from api response>",
       "data_source_id": "<id from api response>",
@@ -290,11 +290,11 @@ show them the output summary - roughly how many candidates came in from each sou
 say: "Last thing - want to set up the automatic morning run? It fetches at 5:30am and you get briefs at 6am."
 
 if yes:
-- tell them to add this to their crontab (`crontab -e`), substituting the real absolute CODE_DIR path:
+- tell them to add this to their crontab (`crontab -e`), substituting the real absolute CODE_DIR and DATA_DIR paths (DATA_DIR resolved per "before you start" - normally `~/.claude/trendvane/`):
   ```
-  30 5 * * * cd <CODE_DIR> && python3 scripts/run_all.py >> ~/.claude/trendvane/cache/run.log 2>&1
+  30 5 * * * mkdir -p <DATA_DIR>/cache && cd <CODE_DIR> && python3 scripts/run_all.py >> <DATA_DIR>/cache/run.log 2>&1
   ```
-  (the scripts resolve the data dir on their own, so cache and briefings still land in `~/.claude/trendvane/`.)
+  (the `mkdir -p` matters: cron opens the `>>` log file before python runs, so the folder must exist first or the whole line fails before the script can create it. the scripts resolve the data dir themselves too, so cache and briefings land in DATA_DIR.)
 - for the claude brief at 6am: offer to use `/schedule` to set it up if the user is in a session that supports it
 
 if no: skip. don't mention it again.
