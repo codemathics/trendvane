@@ -47,8 +47,8 @@ This skill keeps shipped code separate from user data, so updates never overwrit
 
 - **CODE_DIR** = the folder this `SKILL.md` lives in. Holds `scripts/`, `templates/`, and the default config. Read-only; replaced on every skill update.
 - **DATA_DIR** = where the user's own data lives (their config, hook memory, cache, briefings). Resolve it the same way the scripts do:
-  - if `$TRENDVANE_DATA` is set, that path
-  - else if CODE_DIR is under `~/.claude/skills/`, then `~/.claude/trendvane/`
+  - if `$TRENDVANE_DATA` (or the legacy `$TREND_RADAR_DATA`) is set, that path
+  - else if CODE_DIR is under `~/.claude/skills/`, then `~/.claude/trendvane/` - but a pre-rename install whose config still lives in `~/.claude/trend-radar/` (with no `~/.claude/trendvane/` yet) keeps using that legacy dir
   - else (running from a clone) DATA_DIR == CODE_DIR
 
 The python scripts resolve both automatically, so for fetch/score steps you just run them from CODE_DIR. The paths below are labelled with which root they sit under.
@@ -110,7 +110,7 @@ The python scripts resolve both automatically, so for fetch/score steps you just
    - If any check fails, fix and re-audit. Do NOT push until clean.
 
 9. **Push to Notion** via the `notion-create-pages` MCP tool. **FILL EVERYTHING RULE**: populate every property AND the page body, so the table view is informative and the full brief is also readable as one continuous page.
-   - Parent: `data_source_id` from `memory/notion_config.json` (`databases.trend_radar.data_source_id`).
+   - Parent: `data_source_id` from `memory/notion_config.json` (`databases.trendvane.data_source_id`).
    - **Properties to fill on every write**: Trend, Date Spotted, Platforms, Category, Velocity, Score, Time-to-stale, Status, Trending Audio, Hook Variants, Script, Shot List, Caption, Hashtags, Source URLs, Reference Clips, My Take.
    - **Leave empty (fill manually after posting)**: Posted URL, Performance.
    - **Page body (the brief, in readable form)**: the chosen hook in a callout, all 3 hook variants, the timestamped script in a code block, numbered shot list, per-platform captions with bold headers, per-platform hashtags, why-this-trend context, source URLs, reference clips, my take.
@@ -187,7 +187,7 @@ The scripts resolve DATA_DIR themselves, so cache and briefings land in the righ
 Then, in the skill (Claude):
 1. Read `DATA_DIR/cache/picks_YYYYMMDD.json`.
 2. For each pick, generate the brief inline using `CODE_DIR/templates/brief_template.md` and `DATA_DIR/memory/voice_examples.md` as the voice source. Self-audit before writing.
-3. Call `mcp__<notion-mcp-id>__notion-create-pages` with the data source ID from `DATA_DIR/memory/notion_config.json` (`databases.trend_radar.data_source_id`). One page per pick.
+3. Call `mcp__<notion-mcp-id>__notion-create-pages` with the data source ID from `DATA_DIR/memory/notion_config.json` (`databases.trendvane.data_source_id`). One page per pick.
 4. Log each hook to the Hook Library DB.
 5. Save `DATA_DIR/briefings/YYYY-MM-DD.md` with the daily summary.
 6. Post the briefing in chat using the format above.
